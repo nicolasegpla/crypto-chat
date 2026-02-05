@@ -14,10 +14,10 @@ const useDirectOpenAI = !!process.env.OPENAI_API_KEY;
 const openaiProvider = createOpenAI({
   apiKey: useDirectOpenAI 
     ? process.env.OPENAI_API_KEY 
-    : process.env.VERCEL_AI_GATEWAY_KEY,
+    : process.env.API_KEY_VERCEL,
   baseURL: useDirectOpenAI 
     ? undefined 
-    : process.env.VERCEL_AI_GATEWAY_URL,
+    : process.env.AI_GATEWAY_URL,
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
