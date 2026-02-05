@@ -144,6 +144,29 @@ To ensure the project met strict business requirements before a single line of c
 
 </details>
 
+## 🤖 Flujo de Desarrollo con IA (AI-Driven Workflow)
+
+Este proyecto se construyó bajo una metodología de **Ingeniería Aumentada por IA**. Actué como el Arquitecto Principal, orquestando un agente de IA personalizado para acelerar la generación de código base y la depuración, manteniendo siempre una supervisión humana estricta sobre la lógica de negocio y el despliegue.
+
+## 🛠️ Herramientas Utilizadas
+* **Agente Principal:** Google Gemini (Gem personalizada configurada como "Next.js 16 Architect").
+* **Rol:** Pair Programmer & Consultor DevOps.
+* **Configuración:** El agente fue pre-programado con restricciones específicas: *uso estricto de TypeScript, preferencia por Server Actions y validación obligatoria con Zod.*
+
+## Prompt
+
+Ayúdame a crear un Roadmap de ejecución paso a paso para asegurar que entrego un MVP funcional y de alta calidad. Prioriza las tareas de mayor valor y dime qué dejar para el final si me falta tiempo."
+
+### 🧠 Humano vs. IA: Criterio y Validación
+La IA generó aproximadamente el 60% del código base (boilerplate), pero la **Ingeniería Humana** fue indispensable para el 40% crítico:
+
+* **Generación (IA):** Creación rápida de interfaces TypeScript, maquetación Tailwind para las Crypto Cards y esquemas Zod para la API de CoinGecko.
+* **Desacoplamiento de Componentes y Refs:** Logré una arquitectura de componentes limpia y modular (separando lógica de UI) sin perder la seguridad de tipos estricta que exige el compilador.
 
 
+## 🛡️ Prevención de Alucinaciones (Integridad de Precios)
+Un requisito crítico en una app financiera es la precisión de los datos. Los LLMs tienden a inventar números. **Así fue como solucioné este riesgo:**
 
+1.  **Política de Cero-Generación:** Se le prohíbe estrictamente al LLM generar texto con precios.
+2.  **Renderizado basado en Herramientas:** Implementé **Generative UI**. El único trabajo del LLM es decidir *qué* herramienta llamar (ej: `showCryptoDetail`).
+3.  **Salida Determinista:** El precio real que ve el usuario proviene directamente de la respuesta JSON de la API de CoinGecko, inyectada en un Componente React. El LLM nunca "lee" ni "reescribe" el precio; solo sirve el contenedor de UI que aloja el dato real.
