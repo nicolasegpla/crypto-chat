@@ -21,7 +21,7 @@ const openaiProvider = createOpenAI({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const model = openaiProvider('gpt-3.5-turbo') as any;
+const model = openaiProvider('google/gemini-3-flash') as any;
 
 // --- TIPOS ---
 export interface ServerMessage {
