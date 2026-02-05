@@ -21,8 +21,8 @@ export const Chat = ({ handleSubmit, isLoading, messages, messagesEndRef }: Chat
           <div className="flex flex-col items-center justify-center h-full text-center space-y-6 opacity-70 mt-10">
             <div className="text-6xl">🪙</div>
             <div className="space-y-2">
-              <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-100">¿Qué quieres saber hoy?</h2>
-              <p className="text-sm text-gray-500 max-w-xs mx-auto">
+              <h2 className="text-2xl font-semibold text-white dark:text-white">¿Qué quieres saber hoy?</h2>
+              <p className="text-m text-white max-w-xs mx-auto">
                 Puedo darte el Top 10 del mercado o precios específicos en tiempo real.
               </p>
             </div>
@@ -31,23 +31,30 @@ export const Chat = ({ handleSubmit, isLoading, messages, messagesEndRef }: Chat
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-md">
               <button 
                 onClick={() => handleSubmit(undefined, "Muéstrame el Top 10 criptomonedas")}
-                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
+                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 hover:text-black dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
               >
                 <span>🏆</span> Top 10 Market Cap
                 <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">→</span>
               </button>
               <button 
                 onClick={() => handleSubmit(undefined, "Precio actual de Bitcoin")}
-                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
+                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 hover:text-black dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
               >
                 <span>📈</span> Precio de Bitcoin
                 <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">→</span>
               </button>
               <button 
                 onClick={() => handleSubmit(undefined, "Dame info de Ethereum")}
-                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
+                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 hover:text-black dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
               >
                 <span>💎</span> Info de Ethereum
+                <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">→</span>
+              </button>
+              <button 
+                onClick={() => handleSubmit(undefined, "Dame el valor de Pepe")}
+                className="p-3 text-sm text-left border rounded-xl hover:bg-gray-50 hover:text-black dark:hover:bg-zinc-900 transition-colors flex items-center gap-2 group"
+              >
+                <span>🐸</span> Valor de Pepe
                 <span className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">→</span>
               </button>
             </div>

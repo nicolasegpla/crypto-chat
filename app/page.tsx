@@ -81,7 +81,7 @@ function ChatInterface() {
   };
 
   return (
-    <div className="flex flex-col h-screen max-w-3xl mx-auto bg-white dark:bg-black border-x border-gray-200 dark:border-zinc-800 shadow-xl">
+    <div className="flex flex-col h-screen max-w-3xl mx-auto bg-orange-200 dark:bg-black border-none border-gray-200 dark:border-zinc-800 shadow-xl gradient">
       
       {/* HEADER */}
       <Header />

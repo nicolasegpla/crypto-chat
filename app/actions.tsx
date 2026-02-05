@@ -63,7 +63,7 @@ export async function continueConversation(input: string): Promise<ClientMessage
             { role: 'assistant', content },
           ]);
         }
-        return <div className="p-2 text-gray-800 dark:text-gray-200">{content}</div>;
+        return <div className="p-2 text-white dark:text-gray-200">{content}</div>;
       },
       tools: {
         // --- RENOMBRAMIENTO ESTRATÉGICO PARA ROMPER LA CACHÉ ---

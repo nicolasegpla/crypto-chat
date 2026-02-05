@@ -9,10 +9,10 @@ interface FormProps {
 
 export const Form = ({ handleSubmit, isLoading, inputValue, setInputValue }: FormProps) => {
     return (
-        <div className="p-4 bg-white dark:bg-black border-t border-gray-100 dark:border-zinc-800">
+        <div className="p-4 bg-transparent dark:bg-black border-none border-gray-100 dark:border-zinc-800">
         <form onSubmit={(e) => handleSubmit(e)} className="flex gap-2 relative">
           <input
-            className="flex-1 p-4 pr-12 border border-gray-200 dark:border-zinc-700 rounded-2xl bg-gray-50 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
+            className="flex-1 p-4 pr-12 border border-gray-200 dark:border-zinc-700 rounded-2xl bg-gray-50 dark:bg-zinc-900 text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-sm"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             placeholder="Escribe tu pregunta sobre criptos..."
