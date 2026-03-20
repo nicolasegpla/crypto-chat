@@ -1,172 +1,241 @@
-# Crypto AI Chatbot 🪙 🤖
+# Crypto Chat AI
 
-A Generative UI Chatbot built with **Next.js 16**, **Vercel AI SDK**, and **Google Gemini 3 Flash**. This assistant provides real-time cryptocurrency data by interacting with the CoinGecko API and rendering interactive React components directly in the chat stream.
+A **Generative UI Chatbot** built with Next.js 16, Vercel AI SDK, and Google Gemini 3 Flash. Provides real-time cryptocurrency data by integrating with the CoinGecko API and streaming interactive React components directly in the chat.
 
-## 🚀 Live Demo
-
-https://cryptochat-seven.vercel.app/
+**Live Demo:** https://cryptochat-seven.vercel.app/
 
 ---
 
-## 🛠️ How to Run Locally
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router) |
+| Language | TypeScript 5 |
+| AI SDK | Vercel AI SDK v4 (`ai/rsc`) |
+| LLM | Google Gemini 3 Flash (via Vercel AI Gateway) |
+| Data | CoinGecko Public API |
+| Validation | Zod v3 |
+| Styling | Tailwind CSS v4 |
+| Package Manager | pnpm |
+
+---
+
+## Features
+
+- **Generative UI Streaming** — streams React components (not just text) directly in the chat
+- **Real-time crypto data** — prices, market cap, 24h change sourced live from CoinGecko
+- **Hallucination prevention** — the LLM is strictly prohibited from generating price values; all financial data comes directly from the API
+- **Skeleton loading** — visual feedback while API calls are in progress
+- **Optimistic UI** — user messages appear instantly before the server responds
+- **Quick action buttons** — preset suggestions for Top 10, Bitcoin, Ethereum, Pepe
+- **Auto-scroll** — chat scrolls to the latest message automatically
+
+---
+
+## Project Structure
+
+```
+my-app-cryto/
+├── app/
+│   ├── actions.tsx              # Server Actions + AI SDK (tools, streamUI)
+│   ├── page.tsx                 # Main chat page (ChatInterface component)
+│   ├── layout.tsx               # Root layout with AI provider wrapper
+│   ├── globals.css              # Tailwind imports + gradient background
+│   └── components/
+│       ├── chat/Chat.tsx        # Message list + quick action buttons
+│       ├── crypto/crypto-ui.tsx # CryptoCard, Top10Table, CryptoSkeleton
+│       ├── form/Form.tsx        # Input field + submit button
+│       └── ui/Header.tsx        # Top navigation bar
+├── lib/
+│   ├── coingecko.ts             # CoinGecko API integration + normalization
+│   └── utils.ts                 # Utility helpers
+├── types/
+│   └── index.ts                 # CryptoData, CoingeckoSearchResult interfaces
+├── next.config.js               # Webpack alias workaround for Zod + AI SDK
+├── tsconfig.json
+├── postcss.config.mjs
+├── eslint.config.mjs
+└── pnpm-workspace.yaml
+```
+
+---
+
+## Getting Started
 
 ### Prerequisites
-- Node.js 18+
-- pnpm (recommended) or npm
 
-### 1. Installation
-Clone the repository and install dependencies:
+- Node.js 18+
+- pnpm
+
+### Installation
 
 ```bash
-git clone [https://github.com/nicolasegpla/crypto-chat.git](https://github.com/nicolasegpla/crypto-chat.git)
+git clone https://github.com/nicolasegpla/crypto-chat.git
 cd crypto-chat
 pnpm install
 ```
 
-## 🛠️ Environment Variables
-Create a .env.local file in the root directory. You need to configure the Vercel AI Gateway credentials:
+### Environment Variables
 
+Create a `.env.local` file at the project root:
 
-## .env.local
-### Vercel AI Gateway Configuration
-VERCEL_AI_GATEWAY_KEY=vck_tu_key_aqui
-VERCEL_AI_GATEWAY_URL=[https://ai-gateway.vercel.sh/v1](https://ai-gateway.vercel.sh/v1)
+```env
+# Vercel AI Gateway
+API_KEY_VERCEL=your_vercel_ai_gateway_key
+AI_GATEWAY_URL=https://ai-gateway.vercel.sh/v1
 
+# Optional: direct OpenAI API key (overrides the gateway)
+OPENAI_API_KEY=
+```
 
-## Run Development Server
-Start the application in development mode:
+### Run Development Server
 
 ```bash
 pnpm run dev
 ```
-Note: The dev script is configured to use --webpack to resolve specific dependency conflicts with Zod (see Architecture section).
+
+> **Note:** The dev script forces `--webpack` to avoid a known dependency conflict between Zod v3.24 and the AI SDK's schema generator under Turbopack (see [Architecture](#architecture--technical-decisions)).
+
+### Build for Production
+
+```bash
+pnpm run build
+pnpm start
+```
 
 ---
 
 ## Architecture & Technical Decisions
 
-### Tech Stack
+### Data Flow
 
-- Framework: Next.js 16 (App Router) for Server Actions and React Server Components (RSC).
-- AI SDK: ai/rsc from Vercel to stream UI components (Generative UI) instead of just text.
-- Model: google/gemini-3-flash via Vercel AI Gateway. Chosen for its extremely low latency and cost-effectiveness compared to GPT-4.
-- Validation: zod for strictly typed LLM tool calling.
+```
+User input
+  → Form.tsx (client)
+  → continueConversation() (Server Action)
+  → LLM decides tool to call
+  → Tool fetches from CoinGecko API
+  → Data normalized to CryptoData
+  → React component (CryptoCard / Top10Table) streamed to client
+  → Rendered in Chat.tsx
+```
 
-### Key Decisions & "Gotchas"
+### AI Tools
 
-During development, a dependency conflict was identified between zod (v3.24) and the AI SDK's schema generator when using Turbopack (Next.js 16 default).
+| Tool | Description |
+|------|-------------|
+| `listTopCryptos` | Fetches top 10 cryptocurrencies by market cap |
+| `showCryptoDetail` | Searches for and returns details on a specific coin |
 
-- Solution: I explicitly configured the project to use Webpack for both dev and build processes.
-- Implementation: Added a custom resolution alias in next.config.js to map zod/v3 imports correctly to the main zod package.
+Both tools return React components via `streamUI`, not plain text.
 
-### Model Selection (Gemini 3 Flash)
+### Hallucination Prevention
 
-Initially, the project used GPT-3.5/4. However, due to potential billing constraints on the provided AI Gateway key, I optimized the implementation to use Gemini 3 Flash. This model offers a larger context window and faster inference for real-time data fetching.
+A critical concern in financial applications. The solution:
 
-### Hydration & Extensions
+1. **Zero-generation policy** — the system prompt explicitly prohibits the LLM from writing prices or market data.
+2. **Tool-only rendering** — the LLM's only job is to decide which tool to call.
+3. **Deterministic output** — prices rendered in the UI come directly from CoinGecko's JSON response, injected into React components. The LLM never reads or rewrites the numbers.
 
-Implemented suppressHydrationWarning in the root layout to prevent hydration mismatches caused by browser extensions (password managers, ad blockers) injecting attributes into the HTML.
+### CoinGecko API Integration
+
+**Base URL:** `https://api.coingecko.com/api/v3`
+
+| Endpoint | Use |
+|----------|-----|
+| `/coins/markets` | Top 10 by market cap (`vs_currency=usd`, `order=market_cap_desc`, `per_page=10`) |
+| `/search?query={name}` | Find a coin's ID by name or symbol |
+| `/coins/{id}` | Detailed market data for a specific coin |
+
+**Caching:** Market data is cached for 60 seconds; search mappings for 3600 seconds (Next.js `fetch` cache).
+
+**Normalization:** Raw API responses are trimmed to only `current_price`, `market_cap`, `price_change_24h`, and `image` before being passed to the AI context, reducing token consumption and improving latency.
+
+### Webpack Workaround
+
+Next.js 16 defaults to Turbopack, but Turbopack has a dependency resolution conflict between `zod` v3.24 and the AI SDK's schema generator (`zod/v3` import path).
+
+**Fix applied in `next.config.js`:**
+```js
+webpack: (config) => {
+  config.resolve.alias['zod/v3'] = require.resolve('zod');
+  return config;
+}
+```
+
+Both `dev` and `build` scripts explicitly pass `--webpack`.
+
+### Model: Google Gemini 3 Flash
+
+Chosen over GPT-3.5/4 for:
+- Lower cost per token
+- Higher inference speed (important for streaming UI)
+- Larger context window
+
+Accessed via **Vercel AI Gateway**, which provides a unified OpenAI-compatible endpoint.
+
+### Hydration Warning Suppression
+
+`suppressHydrationWarning={true}` is set on the root `<html>` element to prevent hydration mismatches caused by browser extensions (password managers, ad blockers) injecting extra HTML attributes.
 
 ---
 
-# 🦎 CoinGecko Integration
+## Component Reference
 
-The application consumes the CoinGecko public API to fetch live market data.
+### `app/actions.tsx`
+Server-side AI orchestration. Defines the `continueConversation` Server Action and the `AI` provider used by `useUIState` / `useActions` hooks.
 
-## Endpoints Used
+### `app/page.tsx` — `ChatInterface`
+Main chat page. Manages message state, optimistic updates, loading state, and auto-scroll.
 
-### Top 10 Ranking: /coins/markets
+### `app/components/chat/Chat.tsx`
+Renders the message history. Shows an empty state with quick-action suggestion buttons. Displays a loading indicator while the server is responding.
 
-- Parameters: vs_currency=usd, order=market_cap_desc, per_page=10.
-- Used by the listTopCryptos tool.
+### `app/components/crypto/crypto-ui.tsx`
+- **`CryptoCard`** — single coin detail: price, 24h change badge, market cap, rank
+- **`Top10Table`** — ranked table of top 10 coins with price and 24h %
+- **`CryptoSkeleton`** — pulsing placeholder shown during API calls
 
-### Search & Details:
+### `app/components/form/Form.tsx`
+Text input and submit button. Disabled during loading. Includes a disclaimer about AI accuracy.
 
-- First, it searches for the coin ID via /search?query={name}.
-- Then, it fetches details via /coins/{id}.
-- Used by the showCryptoDetail tool.
+### `app/components/ui/Header.tsx`
+Sticky header with animated pulse indicator and gradient title.
 
-## Data Normalization
-
-To avoid passing massive JSON objects to the LLM (which consumes tokens and slows down the chat), I implemented a normalization layer in lib/coingecko.ts.
-
-- Raw API responses are trimmed down to only essential fields: current_price, market_cap, price_change_24h, and image.
-- This ensures the AI context stays lightweight and focused.
-
----
-
-# ⚡ Performance: Avoiding Waterfalls
-
-To ensure a snappy user experience:
-
-### Generative UI Streaming:
-The user doesn't wait for the full text response. The UI components (Charts/Tables) are streamed as soon as the tool call is resolved.
-
-### Server Actions:
-All data fetching logic resides on the server. The client receives fully rendered HTML components, reducing client-side JavaScript bundles.
-
-### Skeleton Loading:
-Custom <CryptoSkeleton /> components are yielded immediately while the external API call is processing, preventing layout shifts and providing instant visual feedback.
+### `lib/coingecko.ts`
+All CoinGecko API calls. Handles search → ID resolution → market data fetching, normalization, and caching.
 
 ---
 
-# Cómo use IA para programar
+## AI-Driven Development Methodology
 
-### 🧬 The Architect Gem: Configuration
+This project was built using **AI-Augmented Engineering**. The developer acted as the principal architect, orchestrating a custom AI agent (Google Gemini Gem configured as a "Next.js 16 Architect") for boilerplate generation and debugging, while retaining human oversight for business logic and deployment decisions.
 
-To ensure the project met strict business requirements before a single line of code was written, I engineered a custom Gem acting as a **Senior Business Analyst**.
+**Breakdown:**
+- **~60% AI-generated:** TypeScript interfaces, Tailwind layouts, Zod schemas, component scaffolding
+- **~40% human-engineered:** Component decoupling and ref architecture, hallucination prevention design, dependency conflict resolution, deployment configuration
 
-<details>
-<summary>Click to view the System Prompt & Configuration</summary>
+**Custom Gem configuration used:**
+- Role: Senior Business Analyst & Software Architect
+- Methodology: Agile with MoSCoW prioritization
+- Output format: User Stories with Gherkin acceptance criteria (Given/When/Then)
+- Constraint: Strict TypeScript, Server Actions preference, mandatory Zod validation
+- Dependency awareness: Solutions validated against `package.json` before suggestion
 
-#### 🤖 Agent Profile
-* **Name:** Crypto App Requirements Specialist
-* **Role:** Senior Business Analyst & Software Architect.
-* **Methodology:** Agile (Scrum/Kanban) with MoSCoW Prioritization.
+---
 
-#### 🧠 Capabilities & Context
-* **Documentation RAG:** Connected to official docs via NotebookLM.
-* **Dependency Awareness:** Analyzes `package.json` to ensure suggested solutions match installed versions.
-* **Output Format:** User Stories with Gherkin Acceptance Criteria (Given/When/Then).
+## Scripts
 
-#### 📜 System Instructions (Excerpt)
-> **Process:**
-> 1. **Understanding:** Ask key questions about Business Goal, Roles, and MVP features.
-> 2. **Structuring:** Divide project into Epics and User Stories.
-> 3. **Prioritization:** Use MoSCoW method to propose execution order.
-> 4. **Technical Output:** For each requirement generate:
->    * Clear Title & Description ("As a [user]...").
->    * Acceptance Criteria in **Gherkin**.
->    * Technical Notes (API/DB/Frontend suggestions).
->
-> **Golden Rule:** Always suggest the "Happy Path" first, then edge cases. Prioritize Core over aesthetics.
-> **Validation:** Before suggesting a technical solution, verify `package.json` dependencies to avoid version conflicts.
+| Command | Description |
+|---------|-------------|
+| `pnpm run dev` | Start dev server (Webpack) |
+| `pnpm run build` | Production build (Webpack) |
+| `pnpm start` | Start production server |
+| `pnpm run lint` | Run ESLint |
 
-</details>
+---
 
-## 🤖 Flujo de Desarrollo con IA (AI-Driven Workflow)
+## License
 
-Este proyecto se construyó bajo una metodología de **Ingeniería Aumentada por IA**. Actué como el Arquitecto Principal, orquestando un agente de IA personalizado para acelerar la generación de código base y la depuración, manteniendo siempre una supervisión humana estricta sobre la lógica de negocio y el despliegue.
-
-## 🛠️ Herramientas Utilizadas
-* **Agente Principal:** Google Gemini (Gem personalizada configurada como "Next.js 16 Architect").
-* **Rol:** Pair Programmer & Consultor DevOps.
-* **Configuración:** El agente fue pre-programado con restricciones específicas: *uso estricto de TypeScript, preferencia por Server Actions y validación obligatoria con Zod.*
-
-## Prompt
-
-Ayúdame a crear un Roadmap de ejecución paso a paso para asegurar que entrego un MVP funcional y de alta calidad. Prioriza las tareas de mayor valor y dime qué dejar para el final si me falta tiempo."
-
-### 🧠 Humano vs. IA: Criterio y Validación
-La IA generó aproximadamente el 60% del código base (boilerplate), pero la **Ingeniería Humana** fue indispensable para el 40% crítico:
-
-* **Generación (IA):** Creación rápida de interfaces TypeScript, maquetación Tailwind para las Crypto Cards y esquemas Zod para la API de CoinGecko.
-* **Desacoplamiento de Componentes y Refs:** Logré una arquitectura de componentes limpia y modular (separando lógica de UI) sin perder la seguridad de tipos estricta que exige el compilador.
-
-
-## 🛡️ Prevención de Alucinaciones (Integridad de Precios)
-Un requisito crítico en una app financiera es la precisión de los datos. Los LLMs tienden a inventar números. **Así fue como solucioné este riesgo:**
-
-1.  **Política de Cero-Generación:** Se le prohíbe estrictamente al LLM generar texto con precios.
-2.  **Renderizado basado en Herramientas:** Implementé **Generative UI**. El único trabajo del LLM es decidir *qué* herramienta llamar (ej: `showCryptoDetail`).
-3.  **Salida Determinista:** El precio real que ve el usuario proviene directamente de la respuesta JSON de la API de CoinGecko, inyectada en un Componente React. El LLM nunca "lee" ni "reescribe" el precio; solo sirve el contenedor de UI que aloja el dato real.
+MIT
